@@ -62,5 +62,85 @@
  *   // => { isValid: false, errors: { name: "...", email: "...", ... } }
  */
 export function validateForm(formData) {
+  let baseObj = { isValid: true, errors: {} };
+  const { name, email, phone, age, pincode, agreeTerms } = formData;
+  if (name.trim() === "" || !(name.length >= 2 && name.length <= 50))
+    baseObj = {
+      isValid: false,
+      errors: { ...baseObj.errors, name: "Name must be 2-50 characters" },
+    };
+  if (
+    typeof email !== "string" || email.indexOf("@")===-1||
+    (email.indexOf("@", email.indexOf("@") + 1) !== -1 ||
+      email.indexOf(".", email.indexOf("@") + 1) === -1 ||
+      email.indexOf(".") === -1)
+  )
+    baseObj = {
+      isValid: false,
+      errors: { ...baseObj.errors, email: "Invalid email format" },
+    };
+  if (
+    typeof phone !== "string" ||
+    phone.length !==10 ||
+    !["6", "7", "8", "9"].includes(phone.charAt(0)) ||
+    phone.split("").some((val) => isNaN(parseInt(val)))
+  )
+    baseObj = {
+      isValid: false,
+      errors: { ...baseObj.errors, phone: "Invalid Indian phone number" },
+    };
+
+  const isInteger =
+    typeof age === "string" ? parseInt(age) : age;
+  if (
+    isNaN(isInteger) ||
+    !(isInteger >= 16 && isInteger <= 100) ||
+    (typeof age==="number"&& !Number.isInteger(age))
+  ) {
+    baseObj = {
+      isValid: false,
+      errors: {
+        ...baseObj.errors,
+        age: "Age must be an integer between 16 and 100",
+      },
+    };
+  }
+
+  if (
+    typeof pincode !== "string" ||
+    pincode.length !== 6 ||
+    pincode.charAt(0) === "0" ||
+    pincode.split("").findIndex((val) => isNaN(val)) !== -1
+  )
+    baseObj = {
+      isValid: false,
+      errors: { ...baseObj.errors, pincode: "Invalid Indian pincode" },
+    };
+  if (formData) {
+    const updateState = formData?.state ?? "";
+    if (updateState === "")
+      baseObj = {
+        isValid: false,
+        errors: { ...baseObj.errors, state: "State is required" },
+      };
+  }
+  if (!Boolean(agreeTerms))
+    baseObj = {
+      isValid: false,
+      errors: { ...baseObj.errors, agreeTerms: "Must agree to terms" },
+    };
+
+  return baseObj;
   // Your code here
 }
+console.log(
+  validateForm({
+    name: "",
+    email: "bad-email",
+    phone: "6123456789",
+    age: "22",
+    pincode: "0123",
+    state: null,
+    agreeTerms: false,
+  }),
+);

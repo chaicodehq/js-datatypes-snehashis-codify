@@ -41,5 +41,89 @@
  *   // => { name: "Priya", totalMarks: 63, percentage: 31.5, grade: "F", ... }
  */
 export function generateReportCard(student) {
+  if (student === null || typeof student !== "object") return null;
+  if (typeof student.name !== "string" || student.name === "") return null;
+  if (
+    student.marks === null ||
+    typeof student.marks !== "object" ||
+    Object.values(student.marks).length <= 0
+  )
+    return null;
+  if (Object.values(student.marks).some((val) => isNaN(val)||val<0||val>100))
+    return null;
+
+  const totalMarks = Object.values(student.marks).reduce((acc, curr) => {
+    acc += curr;
+    return acc;
+  }, 0);
+  const percentage = Number(
+    ((totalMarks / (Object.keys(student.marks).length * 100)) * 100).toFixed(2),
+  );
+  const grade = handleGradeByPercentage(percentage);
+  const highestSubject = findHighestMarksSub(student);
+  const lowestSubject = findLowestMarksSub(student);
+  const passedSubjects = Object.entries(student.marks)
+    .filter((mark) => mark[1] >= 40)
+    .map((mark) => {
+      return mark[0];
+    });
+  const failedSubjects = Object.entries(student.marks)
+    .filter((mark) => mark[1] < 40)
+    .map((mark) => {
+      return mark[0];
+    });
+  const subjectCount = Object.keys(student.marks).length;
+  return {
+    name: student.name,
+    totalMarks,
+    percentage,
+    grade,
+    highestSubject,
+    lowestSubject,
+    passedSubjects,
+    failedSubjects,
+    subjectCount,
+  };
   // Your code here
 }
+function handleGradeByPercentage(percentage) {
+  if (percentage >= 90) {
+    return "A+";
+  } else if (percentage >= 80 && percentage < 90) {
+    return "A";
+  } else if (percentage >= 70 && percentage < 80) {
+    return "B";
+  } else if (percentage >= 60 && percentage < 70) {
+    return "C";
+  } else if (percentage >= 40 && percentage < 60) {
+    return "D";
+  } else {
+    return "F";
+  }
+}
+function findHighestMarksSub(studentObj) {
+  let highestSub = "";
+  const maxVal = Math.max(...Object.values(studentObj.marks));
+  for (const [key, value] of Object.entries(studentObj.marks)) {
+    if (maxVal === value) {
+      highestSub = key;
+    }
+  }
+  return highestSub;
+}
+function findLowestMarksSub(studentObj) {
+  let lowestSub = "";
+  const minVal = Math.min(...Object.values(studentObj.marks));
+  for (const [key, value] of Object.entries(studentObj.marks)) {
+    if (minVal === value) {
+      lowestSub = key;
+    }
+  }
+  return lowestSub;
+}
+console.log(
+  generateReportCard({
+    name: "Rahul",
+    marks: { maths: 85, science: 92, english: 78 },
+  }),
+);

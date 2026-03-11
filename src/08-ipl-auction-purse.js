@@ -44,5 +44,59 @@
  *   // => { ..., remaining: -1200, isOverBudget: true }
  */
 export function iplAuctionSummary(team, players) {
+  if (team === null || typeof team !== "object" || !team.hasOwnProperty("purse")|| team.purse < 0) return null;
+  if (!Array.isArray(players) || players.length <= 0) return null;
+  const { name, purse } = team;
+  const totalSpent = players.reduce((acc, curr) => {
+    acc += curr.price;
+    return acc;
+  }, 0);
+  const remaining = purse - totalSpent;
+  const playerCount = players.length;
+  const costliestPlayer = players.reduce(
+    (acc, curr) => {
+      if (acc.price < curr.price) {
+        Object.assign(acc, curr);
+      }
+      return acc;
+    },
+    { price: -Infinity },
+  );
+  const cheapestPlayer = players.reduce(
+    (acc, curr) => {
+      if (acc.price > curr.price) {
+        Object.assign(acc, curr);
+      }
+      return acc;
+    },
+    { price: Infinity },
+  );
+
+  const averagePrice = Math.round(totalSpent / playerCount);
+  const byRole = players.reduce((acc, curr) => {
+    if (Object.keys(acc).includes(curr.role)) {
+      return { ...acc, [curr.role]: acc[curr.role] + 1 };
+    } else {
+      return { ...acc, [curr.role]: 1 };
+    }
+  }, {});
+  const isOverBudget=totalSpent>team.purse
+  return {
+    teamName: name,
+    totalSpent,
+    remaining,
+    playerCount,
+    costliestPlayer,
+    cheapestPlayer,
+    averagePrice,
+    byRole,
+    isOverBudget
+  };
   // Your code here
 }
+console.log(
+  iplAuctionSummary({ name: "CSK", purse: 9000 }, [
+    { name: "Dhoni", role: "wk", price: 1200 },
+    { name: "Jadeja", role: "ar", price: 1600 },
+  ]),
+);

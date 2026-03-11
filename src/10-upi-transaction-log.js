@@ -47,5 +47,84 @@
  *   //      frequentContact: "Swiggy", allAbove100: false, hasLargeTransaction: true }
  */
 export function analyzeUPITransactions(transactions) {
+  if (!Array.isArray(transactions) || transactions.length <= 0) return null;
+  if (transactions.find((val) => val.amount < 0)) return null;
+
+  const pureTransaction = transactions.filter(
+    (val) => val.amount > 0 && ["credit", "debit"].includes(val.type),
+  );
+  if (pureTransaction.length <= 0) return null;
+  const totalCredit = pureTransaction.reduce((acc, curr) => {
+    if (curr.type === "credit") {
+      acc += curr.amount;
+    }
+    return acc;
+  }, 0);
+  const totalDebit = pureTransaction.reduce((acc, curr) => {
+    if (curr.type === "debit") {
+      acc += curr.amount;
+    }
+    return acc;
+  }, 0);
+  const netBalance = totalCredit - totalDebit;
+  const transactionCount = pureTransaction.length;
+  const avgTransaction = Math.round(
+    (totalCredit + totalDebit) / transactionCount,
+  );
+  const highestTransaction = pureTransaction.reduce(
+    (acc, curr) => {
+      if (acc.amount < curr.amount) {
+        Object.assign(acc, curr);
+      }
+      return acc;
+    },
+    { amount: -Infinity },
+  );
+  const categoryBreakdown = pureTransaction.reduce((acc, curr) => {
+    if (Object.keys(acc).includes(curr.category)) {
+      return { ...acc, [curr.category]: acc[curr.category] + curr.amount };
+    } else {
+      return { ...acc, [curr.category]: curr.amount };
+    }
+  }, {});
+  const contactObj = pureTransaction.reduce((acc, curr) => {
+    if (Object.keys(acc).includes(curr.to)) {
+      return { ...acc, [curr.to]: acc[curr.to] + 1 };
+    } else {
+      return { ...acc, [curr.to]: 1 };
+    }
+  }, {});
+  let frequentContact = { name: "", freqValue: -Infinity };
+  for (const [key, value] of Object.entries(contactObj)) {
+    if (frequentContact.freqValue < value) {
+      frequentContact = { name: key, freqValue: value };
+    }
+  }
+  const allAbove100 = pureTransaction.every((val) => val.amount > 100);
+  const hasLargeTransaction = pureTransaction.some((val) => val.amount >= 5000);
+  return {
+    totalCredit,
+    totalDebit,
+    netBalance,
+    transactionCount,
+    avgTransaction,
+    highestTransaction,
+    categoryBreakdown,
+    frequentContact: frequentContact.name,
+    allAbove100,
+    hasLargeTransaction,
+  };
   // Your code here
 }
+console.log(
+  analyzeUPITransactions([
+    {
+      id: "T2",
+      type: "debit",
+      amount: -100,
+      to: "B",
+      category: "b",
+      date: "2025-01-02",
+    },
+  ]),
+);

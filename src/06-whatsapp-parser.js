@@ -39,5 +39,47 @@
  *   //      text: "I love this song", wordCount: 4, sentiment: "love" }
  */
 export function parseWhatsAppMessage(message) {
+  if (typeof message !== "string") return null;
+  if (message.indexOf(": ") === -1 || message.indexOf(", ") === -1) return null;
+  const toCommaPartIndex = message.indexOf(", ");
+  const toDashPartIndex = message.indexOf(" - ");
+  const toColonPartIndex = message.indexOf(": ");
+  const extractDate = message.slice(0, toCommaPartIndex);
+  const extractTime = message
+    .slice(toCommaPartIndex, toDashPartIndex)
+    .split(", ")[1];
+  const extractSender = message
+    .slice(toDashPartIndex, toColonPartIndex)
+    .split(" - ")[1];
+  const extractMessage = message.slice(toColonPartIndex).split(": ")[1];
+  return {
+    date: extractDate,
+    time: extractTime,
+    sender: extractSender,
+    text: extractMessage,
+    wordCount: extractMessage.split(" ").filter((item) => item !== "").length,
+    sentiment: handleSentiment(extractMessage),
+  };
   // Your code here
 }
+function handleSentiment(message) {
+  const msgStr = String(message).toLowerCase();
+  if (
+    msgStr.indexOf("😂") !== -1 ||
+    msgStr.indexOf(":)") !== -1 ||
+    msgStr.indexOf("haha") !== -1
+  ) {
+    return "funny";
+  } else if (
+    msgStr.indexOf("❤") !== -1 ||
+    msgStr.indexOf("love") !== -1 ||
+    msgStr.indexOf("pyaar") !== -1
+  ) {
+    return "love";
+  } else {
+    return "neutral";
+  }
+}
+console.log(
+  parseWhatsAppMessage("10/01/2025, 10:00 - Amit: I love your haha moments"),
+);

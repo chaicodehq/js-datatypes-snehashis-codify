@@ -46,5 +46,79 @@
  *   // grandTotal: 1000 + 0 + 50 - 150 = 900
  */
 export function buildZomatoOrder(cart, coupon) {
+  if (!Array.isArray(cart) || cart.length <= 0) return null;
+  const items = cart
+    .filter((val) => val.qty > 0)
+    .map((item) => {
+      return {
+        name: item.name,
+        qty: item.qty,
+        basePrice: item.price,
+        addonTotal: handleAddonPriceTotal(item.addons),
+        itemTotal: (item.price + handleAddonPriceTotal(item.addons)) * item.qty,
+      };
+    });
+  const subtotal = items.reduce((acc, curr) => {
+    acc += curr.itemTotal;
+    return acc;
+  }, 0);
+  const deliveryFee = handleDeliveryFee(subtotal);
+  const gst = parseFloat((0.05 * subtotal).toFixed(2));
+  const discount = handleCouponDiscount(coupon, subtotal);
+  const grandTotal = parseFloat(
+    Math.max(0, subtotal + deliveryFee + gst - discount).toFixed(2),
+  );
+  return {
+    items,
+    subtotal,
+    deliveryFee:
+      coupon && coupon.toLowerCase() === "freeship" ? 0 : deliveryFee,
+    gst,
+    discount,
+    grandTotal,
+  };
   // Your code here
 }
+function handleAddonPriceTotal(addons) {
+  if (!addons || !Array.isArray(addons)) return 0;
+  return addons
+    .map((val) => Number(val.split(":")[1]))
+    .reduce((acc, curr) => {
+      acc += curr;
+      return acc;
+    }, 0);
+}
+function handleDeliveryFee(total) {
+  if (total < 500) {
+    return 30;
+  } else if (total >= 500 && total <= 999) {
+    return 15;
+  } else {
+    return 0;
+  }
+}
+function handleCouponDiscount(coupon, total) {
+  let initialVal = 0;
+  if (!coupon || typeof coupon !== "string") return 0;
+  switch (coupon.toLowerCase()) {
+    case "first50":
+      initialVal = Math.min(150, parseFloat((0.5 * total).toFixed(2)));
+      break;
+    case "flat100":
+      initialVal = 100;
+      break;
+    case "freeship":
+      initialVal = handleDeliveryFee(total);
+      break;
+    default:
+      initialVal = 0;
+      break;
+  }
+  return initialVal;
+}
+console.log(
+  buildZomatoOrder(
+    [{ name: "Biryani", price: 300, qty: 1, addons: ["Raita:30"] }],
+    "FLAT100",
+  ),
+);

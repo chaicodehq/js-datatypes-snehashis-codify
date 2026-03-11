@@ -28,5 +28,9 @@
  *   // => "INVALID"
  */
 export function maskAadhaar(aadhaarNumber) {
+  if (typeof aadhaarNumber !== "string") return "INVALID";
+  if (aadhaarNumber.trim().length !== 12) return "INVALID";
+  if (isNaN(aadhaarNumber)) return "INVALID";
+  return `${aadhaarNumber.slice(0, 4).replaceAll(/\d/g, "X")}-${aadhaarNumber.slice(4, 8).replaceAll(/\d/g, "X")}-${aadhaarNumber.slice(8, 12)}`;
   // Your code here
 }

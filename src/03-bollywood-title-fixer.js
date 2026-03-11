@@ -30,5 +30,16 @@
  *   // => "Dil ka Kya Kare"
  */
 export function fixBollywoodTitle(title) {
+  if (typeof title !== "string" || title.trim() === "") return "";
+  return title
+    .trim()
+    .split(/\s+/g)
+    .map((val, idx) => {
+      return ["ka", "ki", "ke", "se", "aur", "ya", "the", "of", "in", "a", "an"].includes(val) && idx!==0
+        ? val.toLowerCase()
+        : val.charAt(0).toUpperCase() + val.toLowerCase().slice(1);
+    })
+    .join(" ");
   // Your code here
 }
+console.log(fixBollywoodTitle("  DILWALE   DULHANIA   LE   JAYENGE  "));
